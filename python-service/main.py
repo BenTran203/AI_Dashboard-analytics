@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Get allowed origins from environment (comma-separated for multiple origins)
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+
 app = FastAPI(
     title="AI Sales Analytics Service",
     description="Python FastAPI microservice for AI-powered sales insights",
@@ -20,7 +23,7 @@ app = FastAPI(
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify allowed origins
+    allow_origins=[origin.strip() for origin in allowed_origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

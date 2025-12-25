@@ -12,12 +12,12 @@ A full-stack sales analytics dashboard with AI-powered insights.
 
 ## Features
 
-- 📊 Real-time sales metrics (Revenue, Orders, AOV, Top Products)
-- 📈 Sales funnel visualization
-- 🤖 AI-generated daily and weekly insights
-- 💬 "Ask Your Data" panel with predefined analysis buttons
-- 🌐 Multi-language support (English/Vietnamese)
-- 📅 Adjustable date range (30-day window)
+- Real-time sales metrics (Revenue, Orders, AOV, Top Products)
+- Sales funnel visualization
+- AI-generated daily and weekly insights
+- "Ask Your Data" panel with predefined analysis buttons
+- Multi-language support (English/Vietnamese)
+- Adjustable date range (30-day window)
 
 ## Prerequisites
 

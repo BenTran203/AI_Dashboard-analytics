@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { MetricsService } from '@/lib/metricsService';
 import axios from 'axios';
+import { insightsRequestSchema } from '@/lib/validation';
 
 const PYTHON_API_URL = process.env.PYTHON_API_URL || 'http://localhost:8000';
 
@@ -20,13 +21,28 @@ export async function POST(request: NextRequest) {
     // Parse dates
     const end = endDate ? new Date(endDate) : new Date();
     const start = startDate ? new Date(startDate) : new Date();
-    
+
     if (!startDate) {
       if (periodType === 'weekly') {
         start.setDate(start.getDate() - 7);
       } else {
         start.setDate(start.getDate() - 30);
       }
+    }
+    const validation = insightsRequestSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid request parameters',
+          details: validation.error.issues.map(i => ({
+            field: i.path.join('.'),
+            message: i.message,
+          })),
+        },
+        { status: 400 }
+      );
     }
 
     // Check if we have a cached insight
@@ -99,7 +115,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error generating insights:', error);
-    
+
     if (axios.isAxiosError(error)) {
       return NextResponse.json(
         {

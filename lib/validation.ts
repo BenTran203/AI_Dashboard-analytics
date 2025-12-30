@@ -42,3 +42,33 @@ export const metricsSummarySchema = z.object({
   revenueGrowth: z.number(),
   ordersGrowth: z.number(),
 });
+
+export const metricsResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.object({
+    period: z.object({
+      startDate: z.string().datetime(),
+      endDate: z.string().datetime(),
+      days: z.number().positive(),
+    }),
+    summary: metricsSummarySchema,
+    topProducts: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      category: z.string(),
+      revenue: z.number().nonnegative(),
+      unitsSold: z.number().int().nonnegative(),
+      orders: z.number().int().nonnegative(),
+    })),
+    dailySales: z.array(z.object({
+      date: z.string(),
+      revenue: z.number().nonnegative(),
+      orders: z.number().int().nonnegative(),
+    })),
+    funnel: z.array(z.object({
+      stage: z.string(),
+      value: z.number().nonnegative(),
+      percentage: z.number().min(0).max(100),
+    })),
+  }),
+});

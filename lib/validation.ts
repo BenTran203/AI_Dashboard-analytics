@@ -1,24 +1,46 @@
 import * as z from "zod";
-export const dateRangeSchema = z.object({
-    startDate: z.string()
-    .datetime()
-    .refine((date) => {
-        const d = new Date(date);
-        return d <= new Date();
-    }, "Start date cannot be in future"),
 
-    endDate: z.string()
-    .datetime()
-    .refine((date) => {
-        const d = new Date(date);
-        return d >= new Date();
-    }, "End date cannot be in the past"),
-}).refine((data) => {
-    const start = new Date(data.startDate);
-    const end = new Date(data.endDate);
-    const diffDays = (end.getTime() - start.getTime()) - (1000*60*60*24);
-  return start < end && diffDays <= 90; // Max 90 days
-});
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+function getEndOfTodayUTC(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+}
+
+export const dateRangeSchema = z
+  .object({
+    startDate: z
+      .string()
+      .datetime()
+      .refine((date) => {
+        const parsed = new Date(date);
+        return !Number.isNaN(parsed.getTime()) && parsed <= getEndOfTodayUTC();
+      }, "Start date cannot be in future"),
+
+    endDate: z
+      .string()
+      .datetime()
+      .refine((date) => {
+        const parsed = new Date(date);
+        return !Number.isNaN(parsed.getTime()) && parsed <= getEndOfTodayUTC();
+      }, "End date cannot be in future"),
+  })
+  .refine(
+    (data) => {
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return false;
+      }
+
+      const days = Math.ceil((end.getTime() - start.getTime()) / MS_PER_DAY);
+      return end >= start && days <= 90; // Max 90 days
+    },
+    {
+      message: "Date range must be valid, with endDate >= startDate and <= 90 days",
+    }
+  );
 
 
 export const insightsRequestSchema = z.object({

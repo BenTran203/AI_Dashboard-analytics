@@ -2,9 +2,12 @@ import * as z from "zod";
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-function getEndOfTodayUTC(): Date {
+function getEndOfTomorrowUTC(): Date {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+  // Allow up to end of tomorrow to handle timezone differences
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 23, 59, 59, 999));
 }
 
 export const dateRangeSchema = z
@@ -14,7 +17,7 @@ export const dateRangeSchema = z
       .datetime()
       .refine((date) => {
         const parsed = new Date(date);
-        return !Number.isNaN(parsed.getTime()) && parsed <= getEndOfTodayUTC();
+        return !Number.isNaN(parsed.getTime()) && parsed <= getEndOfTomorrowUTC();
       }, "Start date cannot be in future"),
 
     endDate: z
@@ -22,7 +25,7 @@ export const dateRangeSchema = z
       .datetime()
       .refine((date) => {
         const parsed = new Date(date);
-        return !Number.isNaN(parsed.getTime()) && parsed <= getEndOfTodayUTC();
+        return !Number.isNaN(parsed.getTime()) && parsed <= getEndOfTomorrowUTC();
       }, "End date cannot be in future"),
   })
   .refine(

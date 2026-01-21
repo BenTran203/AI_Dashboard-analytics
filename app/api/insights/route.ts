@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
         start.setDate(start.getDate() - 30);
       }
     }
-    const validation = insightsRequestSchema.safeParse(body);
+    const validation = insightsRequestSchema.safeParse({...body, startDate: start.toISOString(), endDate: end.toISOString() });
 
     if (!validation.success) {
       return NextResponse.json(

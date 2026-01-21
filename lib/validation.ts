@@ -53,8 +53,8 @@ export const insightsRequestSchema = z.object({
   language: z.enum(['en', 'vi'] as const, {
     message: "Language must be 'en' or 'vi'",
   }),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
 }).merge(dateRangeSchema.omit({ startDate: true, endDate: true }));
 
 // Metrics response validation (for frontend)

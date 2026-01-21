@@ -46,16 +46,45 @@ export const dateRangeSchema = z
   );
 
 
-export const insightsRequestSchema = z.object({
-  periodType: z.enum(['weekly', 'monthly'] as const, {
-    message: "Period type must be 'weekly' or 'monthly'",
-  }),
-  language: z.enum(['en', 'vi'] as const, {
-    message: "Language must be 'en' or 'vi'",
-  }),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
-}).merge(dateRangeSchema.omit({ startDate: true, endDate: true }));
+export const insightsRequestSchema = z
+  .object({
+    periodType: z.enum(['weekly', 'monthly'] as const, {
+      message: "Period type must be 'weekly' or 'monthly'",
+    }),
+    language: z.enum(['en', 'vi'] as const, {
+      message: "Language must be 'en' or 'vi'",
+    }),
+    startDate: z
+      .string()
+      .datetime()
+      .refine((date) => {
+        const parsed = new Date(date);
+        return !Number.isNaN(parsed.getTime()) && parsed <= getEndOfTomorrowUTC();
+      }, "Start date cannot be in future"),
+    endDate: z
+      .string()
+      .datetime()
+      .refine((date) => {
+        const parsed = new Date(date);
+        return !Number.isNaN(parsed.getTime()) && parsed <= getEndOfTomorrowUTC();
+      }, "End date cannot be in future"),
+  })
+  .refine(
+    (data) => {
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return false;
+      }
+
+      const days = Math.ceil((end.getTime() - start.getTime()) / MS_PER_DAY);
+      return end >= start && days <= 90; // Max 90 days
+    },
+    {
+      message: "Date range must be valid, with endDate >= startDate and <= 90 days",
+    }
+  );
 
 // Metrics response validation (for frontend)
 export const metricsSummarySchema = z.object({

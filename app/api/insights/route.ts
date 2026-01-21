@@ -9,6 +9,8 @@ const PYTHON_API_URL = process.env.PYTHON_API_URL || 'http://localhost:8000';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('📥 Received request body:', JSON.stringify(body, null, 2));
+
     const { periodType, language, startDate, endDate } = body;
 
     if (!periodType || !language) {
@@ -18,7 +20,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse dates
+    // Compute default dates
     const end = endDate ? new Date(endDate) : new Date();
     const start = startDate ? new Date(startDate) : new Date();
 
@@ -29,14 +31,20 @@ export async function POST(request: NextRequest) {
         start.setDate(start.getDate() - 30);
       }
     }
-    const validation = insightsRequestSchema.safeParse({...body, startDate: start.toISOString(), endDate: end.toISOString() });
+
+    // Validate the updated body with computed dates
+    const validation = insightsRequestSchema.safeParse({
+      ...body,
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+    });
 
     if (!validation.success) {
       return NextResponse.json(
         {
           success: false,
           error: 'Invalid request parameters',
-          details: validation.error.issues.map(i => ({
+          details: validation.error.issues.map((i) => ({
             field: i.path.join('.'),
             message: i.message,
           })),
